@@ -1,0 +1,6 @@
+mongo:
+  apply_uri: mongodb://fff
+  max_conns: 100
+  min_conns: 10
+  idle_time: 30m
+  db_name: rasp-central
