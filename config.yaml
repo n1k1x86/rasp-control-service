@@ -4,3 +4,6 @@ mongo:
   min_conns: 10
   idle_time: 30m
   db_name: rasp-central
+
+app:
+  graceful_timeout: 10s

@@ -9,6 +9,7 @@ import (
 
 type Config struct {
 	Mongo Mongo `yaml:"mongo"`
+	App   App   `yaml:"app"`
 }
 
 type Mongo struct {
@@ -17,6 +18,10 @@ type Mongo struct {
 	MinConns uint64        `yaml:"min_conns"`
 	IdleTime time.Duration `yaml:"idle_time"`
 	DBName   string        `yaml:"db_name"`
+}
+
+type App struct {
+	GracefulTimeout time.Duration `yaml:"graceful_timeout"`
 }
 
 func LoadConfig() (*Config, error) {
