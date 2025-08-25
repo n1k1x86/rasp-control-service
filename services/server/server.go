@@ -5,27 +5,47 @@ import (
 	ssrfrepo "rasp-central-service/services/repos/ssrf_repo"
 
 	rasp_rpc "github.com/n1k1x86/rasp-grpc-contract/gen/proto"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type RASPCentral struct {
-	Server   *rasp_rpc.UnimplementedRASPCentralServer
+	rasp_rpc.UnimplementedRASPCentralServer
 	SSRFRepo *ssrfrepo.Repository
 }
 
-func (r *RASPCentral) RegAgent(ctx context.Context, req *rasp_rpc.RegAgentRequest) (*rasp_rpc.RegAgentResponse, error) {
+func (r *RASPCentral) RegSSRFAgent(ctx context.Context, req *rasp_rpc.RegSSRFAgentRequest) (*rasp_rpc.RegSSRFAgentResponse, error) {
+	rules := r.SSRFRepo.NewRules(req.HostRules, req.IPRules, req.RegexpRules)
+	agent := r.SSRFRepo.NewAgent(rules, req.ServiceName, req.ServiceDescription, req.UpdateURL, req.AgentName)
 
-	return nil, status.Errorf(codes.Unimplemented, "method RegAgent not implemented")
+	id, err := r.SSRFRepo.RegAgent(agent)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &rasp_rpc.RegSSRFAgentResponse{
+		Status:  200,
+		Detail:  "agent was sucessfully registered",
+		AgentID: id,
+	}
+
+	return resp, nil
 }
 
-func (r *RASPCentral) DeactivateAgent(ctx context.Context, req *rasp_rpc.DeactivateAgentRequest) (*rasp_rpc.DeactivateAgentResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeactivateAgent not implemented")
+func (r *RASPCentral) DeactivateSSRFAgent(ctx context.Context, req *rasp_rpc.DeactivateSSRFAgentRequest) (*rasp_rpc.DeactivateSSRFAgentResponse, error) {
+	err := r.SSRFRepo.DeactivateAgent(req.AgentID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &rasp_rpc.DeactivateSSRFAgentResponse{
+		Status: 200,
+		Detail: "agent " + req.AgentName + " was deactivated",
+	}
+
+	return resp, nil
 }
 
 func NewServer(ctx context.Context, ssrfRepo *ssrfrepo.Repository) *RASPCentral {
 	return &RASPCentral{
-		Server:   &rasp_rpc.UnimplementedRASPCentralServer{},
 		SSRFRepo: ssrfRepo,
 	}
 }

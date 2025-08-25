@@ -49,7 +49,7 @@ func main() {
 	server := server.NewServer(ctx, ssrfRepo)
 
 	go func() {
-		rasp_rpc.RegisterRASPCentralServer(grpcServer, server.Server)
+		rasp_rpc.RegisterRASPCentralServer(grpcServer, server)
 		log.Println("server is running")
 		if err = grpcServer.Serve(lis); err != nil {
 			log.Fatalf("Server error: %s", err.Error())

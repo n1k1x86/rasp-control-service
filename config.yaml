@@ -1,5 +1,5 @@
 mongo:
-  apply_uri: mongodb://fff
+  apply_uri: mongodb://localhost:27017
   max_conns: 100
   min_conns: 10
   idle_time: 30m
