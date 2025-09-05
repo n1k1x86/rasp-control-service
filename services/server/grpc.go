@@ -15,7 +15,6 @@ type RASPCentral struct {
 func (r *RASPCentral) RegSSRFAgent(ctx context.Context, req *rasp_rpc.RegSSRFAgentRequest) (*rasp_rpc.RegSSRFAgentResponse, error) {
 	rules := r.SSRFRepo.NewRules(req.HostRules, req.IPRules, req.RegexpRules)
 	agent := r.SSRFRepo.NewAgent(rules, req.ServiceName, req.ServiceDescription, req.UpdateURL, req.AgentName)
-
 	id, err := r.SSRFRepo.RegAgent(agent)
 	if err != nil {
 		return nil, err
@@ -44,7 +43,7 @@ func (r *RASPCentral) DeactivateSSRFAgent(ctx context.Context, req *rasp_rpc.Dea
 	return resp, nil
 }
 
-func NewServer(ctx context.Context, ssrfRepo *ssrfrepo.Repository) *RASPCentral {
+func NewGRPCServer(ctx context.Context, ssrfRepo *ssrfrepo.Repository) *RASPCentral {
 	return &RASPCentral{
 		SSRFRepo: ssrfRepo,
 	}

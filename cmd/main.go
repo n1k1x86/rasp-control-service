@@ -10,6 +10,7 @@ import (
 	"rasp-central-service/services/database/mongo"
 	ssrfrepo "rasp-central-service/services/repos/ssrf_repo"
 	"rasp-central-service/services/server"
+	rasp_server "rasp-central-service/services/server"
 	"syscall"
 	"time"
 
@@ -46,7 +47,7 @@ func main() {
 	ssrfRepo := ssrfrepo.NewRepository(client.Database(cfg.Mongo.DBName), ctx)
 
 	grpcServer := grpc.NewServer()
-	server := server.NewServer(ctx, ssrfRepo)
+	server := server.NewGRPCServer(ctx, ssrfRepo)
 
 	go func() {
 		rasp_rpc.RegisterRASPCentralServer(grpcServer, server)
@@ -54,6 +55,11 @@ func main() {
 		if err = grpcServer.Serve(lis); err != nil {
 			log.Fatalf("Server error: %s", err.Error())
 		}
+	}()
+
+	go func() {
+		httpServer := rasp_server.NewHTTPServer(ctx, ssrfRepo)
+		httpServer.Start()
 	}()
 
 	sig := make(chan os.Signal, 1)

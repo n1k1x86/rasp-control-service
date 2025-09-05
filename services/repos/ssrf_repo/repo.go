@@ -5,6 +5,8 @@ import (
 	"errors"
 	"time"
 
+	rasp_coll "rasp-central-service/services/database/mongo"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -37,8 +39,7 @@ func (r *Repository) IsActivated(coll *mongo.Collection, agentName string) (bool
 }
 
 func (r *Repository) RegAgent(agent *SSRFAgent) (string, error) {
-	coll := r.db.Collection(collName)
-
+	coll := r.db.Collection("ssrf_agents")
 	ok, id, err := r.IsActivated(coll, agent.AgentName)
 	if err != nil {
 		return "", err
@@ -96,12 +97,43 @@ func (r *Repository) DeactivateAgent(agentID string) error {
 		},
 	}
 
-	coll := r.db.Collection(collName)
+	coll := r.db.Collection(rasp_coll.SSRFAgentsColl)
 	_, err = coll.UpdateOne(r.ctx, filter, update)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func (r *Repository) UpdateSSRFRules(agentID string, rules []Rules) error {
+	coll := r.db.Collection(rasp_coll.SSRFAgentsColl)
+
+	update := bson.M{
+		"$set": rules,
+	}
+
+	_, err := coll.UpdateByID(r.ctx, agentID, update)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *Repository) GetAllAgents() ([]*SSRFAgent, error) {
+	agents := make([]*SSRFAgent, 0)
+
+	coll := r.db.Collection(rasp_coll.SSRFAgentsColl)
+	filter := bson.M{}
+
+	cur, err := coll.Find(r.ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	err = cur.All(r.ctx, &agents)
+	if err != nil {
+		return nil, err
+	}
+	return agents, nil
 }
 
 func NewRepository(db *mongo.Database, ctx context.Context) *Repository {
