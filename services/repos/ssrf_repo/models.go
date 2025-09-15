@@ -19,59 +19,51 @@ type SSRFAgent struct {
 }
 
 type Rules struct {
-	ID          primitive.ObjectID `json:"id" bson:"_id"`
-	HostRules   HostRules          `json:"host_rules" bson:"host_rules"`
-	IPRules     IPRules            `json:"ip_rules" bson:"ip_rules"`
-	RegexpRules RegexpRules        `json:"regexp_rules" bson:"regexp_rules"`
-	CreatedAt   time.Time          `json:"created_at" bson:"created_at"`
-	UpdatedAt   time.Time          `json:"updated_at" bson:"updated_at"`
+	HostRules   HostRules   `json:"host_rules" bson:"host_rules"`
+	IPRules     IPRules     `json:"ip_rules" bson:"ip_rules"`
+	RegexpRules RegexpRules `json:"regexp_rules" bson:"regexp_rules"`
+	CreatedAt   time.Time   `json:"created_at" bson:"created_at"`
+	UpdatedAt   time.Time   `json:"updated_at" bson:"updated_at"`
 }
 
 type HostRules struct {
-	ID        primitive.ObjectID `json:"id" bson:"_id"`
-	Hosts     []string           `json:"hosts" bson:"hosts"`
-	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
-	UpdatedAt time.Time          `json:"updated_at" bson:"updated_at"`
+	Hosts     []string  `json:"hosts" bson:"hosts"`
+	CreatedAt time.Time `json:"created_at" bson:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
 }
 
 type IPRules struct {
-	ID        primitive.ObjectID `json:"id" bson:"_id"`
-	IPs       []string           `json:"ips" bson:"ips"`
-	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
-	UpdatedAt time.Time          `json:"updated_at" bson:"updated_at"`
+	IPs       []string  `json:"ips" bson:"ips"`
+	CreatedAt time.Time `json:"created_at" bson:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
 }
 
 type RegexpRules struct {
-	ID        primitive.ObjectID `json:"id" bson:"_id"`
-	Regexps   []string           `json:"regexps" bson:"regexps"`
-	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
-	UpdatedAt time.Time          `json:"updated_at" bson:"updated_at"`
+	Regexps   []string  `json:"regexps" bson:"regexps"`
+	CreatedAt time.Time `json:"created_at" bson:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
 }
 
 func (r *Repository) NewRules(hosts, ips, regexps []string) *Rules {
 	hostRules := HostRules{
-		ID:        primitive.NewObjectID(),
 		Hosts:     hosts,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
 
 	ipRules := IPRules{
-		ID:        primitive.NewObjectID(),
 		IPs:       ips,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
 
 	regRules := RegexpRules{
-		ID:        primitive.NewObjectID(),
 		Regexps:   regexps,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
 
 	return &Rules{
-		ID:          primitive.NewObjectID(),
 		HostRules:   hostRules,
 		IPRules:     ipRules,
 		RegexpRules: regRules,

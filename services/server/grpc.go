@@ -9,7 +9,9 @@ import (
 
 type RASPCentral struct {
 	rasp_rpc.UnimplementedRASPCentralServer
-	SSRFRepo *ssrfrepo.Repository
+	ctx       context.Context
+	SSRFRepo  *ssrfrepo.Repository
+	StreamMap map[string]rasp_rpc.RASPCentral_SyncRulesServer
 }
 
 func (r *RASPCentral) RegSSRFAgent(ctx context.Context, req *rasp_rpc.RegSSRFAgentRequest) (*rasp_rpc.RegSSRFAgentResponse, error) {
@@ -29,6 +31,14 @@ func (r *RASPCentral) RegSSRFAgent(ctx context.Context, req *rasp_rpc.RegSSRFAge
 	return resp, nil
 }
 
+func (r *RASPCentral) CloseSSRFAgent(ctx context.Context, req *rasp_rpc.AgentRequest) (*rasp_rpc.CloseSSRFAgentResponse, error) {
+	err := r.SSRFRepo.DeleteAgent(req.AgentID)
+	if err != nil {
+		return nil, err
+	}
+	return &rasp_rpc.CloseSSRFAgentResponse{Detail: "agent was close successfuly"}, nil
+}
+
 func (r *RASPCentral) DeactivateSSRFAgent(ctx context.Context, req *rasp_rpc.DeactivateSSRFAgentRequest) (*rasp_rpc.DeactivateSSRFAgentResponse, error) {
 	err := r.SSRFRepo.DeactivateAgent(req.AgentID)
 	if err != nil {
@@ -43,8 +53,16 @@ func (r *RASPCentral) DeactivateSSRFAgent(ctx context.Context, req *rasp_rpc.Dea
 	return resp, nil
 }
 
+func (r *RASPCentral) SyncRules(req *rasp_rpc.AgentRequest, stream rasp_rpc.RASPCentral_SyncRulesServer) error {
+	r.StreamMap[req.AgentID] = stream
+	<-r.ctx.Done()
+	return nil
+}
+
 func NewGRPCServer(ctx context.Context, ssrfRepo *ssrfrepo.Repository) *RASPCentral {
 	return &RASPCentral{
-		SSRFRepo: ssrfRepo,
+		SSRFRepo:  ssrfRepo,
+		ctx:       ctx,
+		StreamMap: make(map[string]rasp_rpc.RASPCentral_SyncRulesServer),
 	}
 }

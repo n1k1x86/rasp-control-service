@@ -105,14 +105,38 @@ func (r *Repository) DeactivateAgent(agentID string) error {
 	return nil
 }
 
-func (r *Repository) UpdateSSRFRules(agentID string, rules []Rules) error {
+func (r *Repository) UpdateSSRFRules(agentID string, rules *Rules) error {
 	coll := r.db.Collection(rasp_coll.SSRFAgentsColl)
-
-	update := bson.M{
-		"$set": rules,
+	id, err := primitive.ObjectIDFromHex(agentID)
+	if err != nil {
+		return err
 	}
 
-	_, err := coll.UpdateByID(r.ctx, agentID, update)
+	update := bson.M{
+		"$set": bson.M{
+			"rules": rules,
+		},
+	}
+
+	_, err = coll.UpdateByID(r.ctx, id, update)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *Repository) DeleteAgent(agentID string) error {
+	coll := r.db.Collection(rasp_coll.SSRFAgentsColl)
+	id, err := primitive.ObjectIDFromHex(agentID)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{
+		"_id": id,
+	}
+
+	_, err = coll.DeleteOne(r.ctx, filter)
 	if err != nil {
 		return err
 	}

@@ -3,15 +3,15 @@ module rasp-central-service
 go 1.23.0
 
 require (
-	github.com/n1k1x86/rasp-grpc-contract v0.1.1
+	github.com/gorilla/mux v1.8.1
+	github.com/n1k1x86/rasp-grpc-contract v0.1.4
 	go.mongodb.org/mongo-driver v1.17.4
-	google.golang.org/grpc v1.74.2
+	google.golang.org/grpc v1.75.1
 	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/klauspost/compress v1.16.7 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect

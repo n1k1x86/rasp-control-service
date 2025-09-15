@@ -58,7 +58,7 @@ func main() {
 	}()
 
 	go func() {
-		httpServer := rasp_server.NewHTTPServer(ctx, ssrfRepo)
+		httpServer := rasp_server.NewHTTPServer(ctx, server.StreamMap, ssrfRepo)
 		httpServer.Start()
 	}()
 
