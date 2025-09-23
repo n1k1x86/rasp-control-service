@@ -3,9 +3,11 @@ package ssrfrepo
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	rasp_coll "rasp-central-service/services/database/mongo"
+	generalrepo "rasp-central-service/services/repos/general"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -14,8 +16,9 @@ import (
 )
 
 type Repository struct {
-	db  *mongo.Database
-	ctx context.Context
+	db          *mongo.Database
+	ctx         context.Context
+	generalRepo *generalrepo.Repository
 }
 
 func (r *Repository) IsActivated(coll *mongo.Collection, agentName string) (bool, string, error) {
@@ -39,6 +42,14 @@ func (r *Repository) IsActivated(coll *mongo.Collection, agentName string) (bool
 }
 
 func (r *Repository) RegAgent(agent *SSRFAgent) (string, error) {
+	isRegistered, err := r.generalRepo.IsServiceRegistered(agent.ServiceID.Hex())
+	if err != nil {
+		return "", err
+	}
+	if !isRegistered {
+		return "", fmt.Errorf("service is not registered with id = %s", agent.ServiceID.Hex())
+	}
+
 	coll := r.db.Collection("ssrf_agents")
 	ok, id, err := r.IsActivated(coll, agent.AgentName)
 	if err != nil {
@@ -50,6 +61,7 @@ func (r *Repository) RegAgent(agent *SSRFAgent) (string, error) {
 
 	filter := bson.M{
 		"agent_name": agent.AgentName,
+		"service_id": agent.ServiceID,
 	}
 
 	update := bson.M{
@@ -58,12 +70,11 @@ func (r *Repository) RegAgent(agent *SSRFAgent) (string, error) {
 			"updated_at": time.Now(),
 		},
 		"$setOnInsert": bson.M{
-			"_id":              agent.ID,
-			"agent_name":       agent.AgentName,
-			"service_name":     agent.ServiceName,
-			"rules":            agent.Rules,
-			"update_rules_url": agent.UpdateRulesURL,
-			"created_at":       agent.CreatedAt,
+			"_id":        agent.ID,
+			"agent_name": agent.AgentName,
+			"service_id": agent.ServiceID,
+			"rules":      agent.Rules,
+			"created_at": agent.CreatedAt,
 		},
 	}
 
@@ -160,9 +171,10 @@ func (r *Repository) GetAllAgents() ([]*SSRFAgent, error) {
 	return agents, nil
 }
 
-func NewRepository(db *mongo.Database, ctx context.Context) *Repository {
+func NewRepository(db *mongo.Database, ctx context.Context, generalRepo *generalrepo.Repository) *Repository {
 	return &Repository{
-		db:  db,
-		ctx: ctx,
+		db:          db,
+		ctx:         ctx,
+		generalRepo: generalRepo,
 	}
 }

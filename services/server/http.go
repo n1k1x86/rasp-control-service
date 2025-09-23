@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	generalRepo "rasp-central-service/services/repos/general"
 	ssrfrepo "rasp-central-service/services/repos/ssrf_repo"
 	httphandlers "rasp-central-service/services/server/http_handlers"
 
@@ -22,8 +23,8 @@ func (h *HTTPServer) Start() {
 	http.ListenAndServe("0.0.0.0:8000", h.r)
 }
 
-func NewHTTPServer(ctx context.Context, streams map[string]rasp_rpc.RASPCentral_SyncRulesServer, ssrfRepo *ssrfrepo.Repository) *HTTPServer {
-	r := httphandlers.BuildRouter(ssrfRepo, streams)
+func NewHTTPServer(ctx context.Context, streams map[string]rasp_rpc.RASPCentral_SyncRulesServer, ssrfRepo *ssrfrepo.Repository, generalRepo *generalRepo.Repository) *HTTPServer {
+	r := httphandlers.BuildRouter(ssrfRepo, generalRepo, streams)
 
 	return &HTTPServer{
 		r:       r,

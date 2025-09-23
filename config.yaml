@@ -1,5 +1,5 @@
 mongo:
-  apply_uri: mongodb://172.28.224.1:27017
+  apply_uri: mongodb://192.168.0.104:27017
   max_conns: 100
   min_conns: 10
   idle_time: 30m

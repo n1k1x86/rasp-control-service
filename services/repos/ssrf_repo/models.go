@@ -7,15 +7,13 @@ import (
 )
 
 type SSRFAgent struct {
-	ID                 primitive.ObjectID `json:"id" bson:"_id"`
-	AgentName          string             `json:"agent_name" bson:"agent_name"`
-	ServiceName        string             `json:"service_name" bson:"service_name"`
-	ServiceDescription string             `json:"service_description" bson:"service_description"`
-	IsActive           bool               `json:"is_active" bson:"is_active"`
-	Rules              Rules              `json:"rules" bson:"rules"`
-	UpdateRulesURL     string             `json:"update_rules_url" bson:"update_rules_url"`
-	CreatedAt          time.Time          `json:"created_at" bson:"created_at"`
-	UpdatedAt          time.Time          `json:"updated_at" bson:"updated_at"`
+	ID        primitive.ObjectID `json:"id" bson:"_id"`
+	AgentName string             `json:"agent_name" bson:"agent_name"`
+	ServiceID primitive.ObjectID `json:"service_id" bson:"service_id"`
+	IsActive  bool               `json:"is_active" bson:"is_active"`
+	Rules     Rules              `json:"rules" bson:"rules"`
+	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
+	UpdatedAt time.Time          `json:"updated_at" bson:"updated_at"`
 }
 
 type Rules struct {
@@ -72,16 +70,19 @@ func (r *Repository) NewRules(hosts, ips, regexps []string) *Rules {
 	}
 }
 
-func (r *Repository) NewAgent(rules *Rules, serviceName, description, updateURL, agentName string) *SSRFAgent {
-	return &SSRFAgent{
-		ID:                 primitive.NewObjectID(),
-		AgentName:          agentName,
-		ServiceName:        serviceName,
-		ServiceDescription: description,
-		IsActive:           true,
-		Rules:              *rules,
-		UpdateRulesURL:     updateURL,
-		CreatedAt:          time.Now(),
-		UpdatedAt:          time.Now(),
+func (r *Repository) NewAgent(agentName, serviceID string) (*SSRFAgent, error) {
+	rules := &Rules{}
+	serviceIDObjectID, err := primitive.ObjectIDFromHex(serviceID)
+	if err != nil {
+		return nil, err
 	}
+	return &SSRFAgent{
+		ID:        primitive.NewObjectID(),
+		AgentName: agentName,
+		ServiceID: serviceIDObjectID,
+		IsActive:  true,
+		Rules:     *rules,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}, nil
 }

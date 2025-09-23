@@ -8,11 +8,10 @@ import (
 	"os/signal"
 	"rasp-central-service/config"
 	"rasp-central-service/services/database/mongo"
+	generalrepo "rasp-central-service/services/repos/general"
 	ssrfrepo "rasp-central-service/services/repos/ssrf_repo"
-	"rasp-central-service/services/server"
 	rasp_server "rasp-central-service/services/server"
 	"syscall"
-	"time"
 
 	rasp_rpc "github.com/n1k1x86/rasp-grpc-contract/gen/proto"
 	"google.golang.org/grpc"
@@ -44,10 +43,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	ssrfRepo := ssrfrepo.NewRepository(client.Database(cfg.Mongo.DBName), ctx)
+	generalRepo := generalrepo.NewRepository(client.Database(cfg.Mongo.DBName), ctx)
+	ssrfRepo := ssrfrepo.NewRepository(client.Database(cfg.Mongo.DBName), ctx, generalRepo)
 
 	grpcServer := grpc.NewServer()
-	server := server.NewGRPCServer(ctx, ssrfRepo)
+	server := rasp_server.NewGRPCServer(ctx, ssrfRepo, generalRepo)
 
 	go func() {
 		rasp_rpc.RegisterRASPCentralServer(grpcServer, server)
@@ -58,7 +58,7 @@ func main() {
 	}()
 
 	go func() {
-		httpServer := rasp_server.NewHTTPServer(ctx, server.StreamMap, ssrfRepo)
+		httpServer := rasp_server.NewHTTPServer(ctx, server.StreamMap, ssrfRepo, generalRepo)
 		httpServer.Start()
 	}()
 
@@ -67,7 +67,10 @@ func main() {
 
 	<-sig
 	cancel()
-	time.Sleep(cfg.App.GracefulTimeout)
+
+	gracefulCtx, gracefulCancel := context.WithTimeout(context.Background(), cfg.App.GracefulTimeout)
+	defer gracefulCancel()
+	<-gracefulCtx.Done()
 
 	grpcServer.GracefulStop()
 	log.Println("app was gracefully shutted down")

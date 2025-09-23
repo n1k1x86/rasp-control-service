@@ -1,6 +1,14 @@
 package httphandlers
 
-import rasp_rpc "github.com/n1k1x86/rasp-grpc-contract/gen/proto"
+import (
+	"log"
+
+	rasp_rpc "github.com/n1k1x86/rasp-grpc-contract/gen/proto"
+)
+
+func logHandlers(msg string) {
+	log.Println(msg)
+}
 
 func BuildRules(hosts, ips, regexps []string) *rasp_rpc.NewRules {
 	payload := &rasp_rpc.NewRules_Rules{

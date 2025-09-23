@@ -14,14 +14,20 @@ import (
 )
 
 func RegSSRFHandlers(r *mux.Router, ssrfRepo *ssrfrepo.Repository, streams map[string]rasp_rpc.RASPCentral_SyncRulesServer) {
-	r.HandleFunc("/ssrf-agents/get_all", GetAllSSRFAgents(ssrfRepo)).Methods("GET")
-	r.HandleFunc("/ssrf-agents/update", UpdateSSRFRules(streams, ssrfRepo)).Methods("POST")
+	baseURI := "/ssrf_agents"
+
+	r.HandleFunc(baseURI+"/get_all", GetAllSSRFAgents(ssrfRepo)).Methods("GET")
+	logHandlers("registered route /ssrf-agents/get_all with method GET")
+
+	r.HandleFunc(baseURI+"/update", UpdateSSRFRules(streams, ssrfRepo)).Methods("POST")
+	logHandlers("registered route /ssrf-agents/update with method POST")
 }
 
 func GetAllSSRFAgents(ssrfRepo *ssrfrepo.Repository) func(w http.ResponseWriter, r *http.Request) {
 	agents, err := ssrfRepo.GetAllAgents()
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
+			log.Printf("ERROR: %s", err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(fmt.Sprintf(`{"error": %s}`, err.Error())))
 			return
@@ -29,6 +35,7 @@ func GetAllSSRFAgents(ssrfRepo *ssrfrepo.Repository) func(w http.ResponseWriter,
 
 		data, err := json.Marshal(&agents)
 		if err != nil {
+			log.Printf("ERROR: %s", err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(fmt.Sprintf(`{"error": %s}`, err.Error())))
 			return
@@ -42,14 +49,14 @@ func UpdateSSRFRules(streams map[string]rasp_rpc.RASPCentral_SyncRulesServer, ss
 	return func(w http.ResponseWriter, r *http.Request) {
 		data, err := io.ReadAll(r.Body)
 		if err != nil {
-			log.Println(err)
+			log.Printf("ERROR: %s", err.Error())
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 		var req UpdateRulesBody
 		err = json.Unmarshal(data, &req)
 		if err != nil {
-			log.Println(err)
+			log.Printf("ERROR: %s", err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -57,7 +64,7 @@ func UpdateSSRFRules(streams map[string]rasp_rpc.RASPCentral_SyncRulesServer, ss
 		rules := ssrfRepo.NewRules(req.HostsRules, req.IPRules, req.RegexpRules)
 		err = ssrfRepo.UpdateSSRFRules(req.AgentID, rules)
 		if err != nil {
-			log.Println(err)
+			log.Printf("ERROR: %s", err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -67,7 +74,7 @@ func UpdateSSRFRules(streams map[string]rasp_rpc.RASPCentral_SyncRulesServer, ss
 
 		err = stream.Send(BuildRules(req.HostsRules, req.IPRules, req.RegexpRules))
 		if err != nil {
-			log.Println(err)
+			log.Printf("ERROR: %s", err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}

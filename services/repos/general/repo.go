@@ -2,17 +2,59 @@ package general
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"time"
 
 	rasp_coll "rasp-central-service/services/database/mongo"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Repository struct {
 	db  *mongo.Database
 	ctx context.Context
+}
+
+func (r *Repository) RegService(serviceName, serviceDescription string) (string, error) {
+	coll := r.db.Collection(rasp_coll.Services)
+
+	service := CreateNewService(serviceName, serviceDescription)
+
+	res, err := coll.InsertOne(r.ctx, service)
+	if err != nil {
+		return "", err
+	}
+	if res == nil {
+		return "", fmt.Errorf("inserted result is nil")
+	}
+
+	return res.InsertedID.(primitive.ObjectID).Hex(), nil
+}
+
+func (r *Repository) IsServiceRegistered(serviceID string) (bool, error) {
+	coll := r.db.Collection(rasp_coll.Services)
+
+	id, err := primitive.ObjectIDFromHex(serviceID)
+	if err != nil {
+		return false, err
+	}
+
+	filter := bson.M{
+		"_id": id,
+	}
+
+	res := coll.FindOne(r.ctx, filter)
+	err = res.Err()
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }
 
 func (r *Repository) GetAllAgents() ([]*BaseAgent, error) {
