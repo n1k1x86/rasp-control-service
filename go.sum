@@ -18,8 +18,10 @@ github.com/klauspost/compress v1.16.7 h1:2mk3MPGNzKyxErAw8YaohYh69+pa4sIQSC0fPGC
 github.com/klauspost/compress v1.16.7/go.mod h1:ntbaceVETuRiXiv4DpjP66DpAtAGkEQskQzEyD//IeE=
 github.com/montanaflynn/stats v0.7.1 h1:etflOAAHORrCC44V+aR6Ftzort912ZU+YLiSTuV8eaE=
 github.com/montanaflynn/stats v0.7.1/go.mod h1:etXPPgVO6n31NxCd9KQUMvCM+ve0ruNzt6R8Bnaayow=
-github.com/n1k1x86/rasp-grpc-contract v0.1.7 h1:BU+ziNqKOm/071/QckmyK6AmYj/XZQmJJkpTuaGy5Fk=
-github.com/n1k1x86/rasp-grpc-contract v0.1.7/go.mod h1:4STIUDlAcsWqOoLBsEmik77M2EptvLvrOf76go4OvVg=
+github.com/n1k1x86/rasp-agents v0.0.10 h1:48Xgha4K0fT2y2vNYvokVU8hriRgJYPKlzHBUnA2lK0=
+github.com/n1k1x86/rasp-agents v0.0.10/go.mod h1:b+pV+iawWckoh9aH+VTUdDzz+JmvpK6BJAsLt8/4gIM=
+github.com/n1k1x86/rasp-grpc-contract v0.1.8 h1:xfJNP28Wmtt00Lwhj75URPNIhSDD4CzIlqDsTtwIHEM=
+github.com/n1k1x86/rasp-grpc-contract v0.1.8/go.mod h1:4STIUDlAcsWqOoLBsEmik77M2EptvLvrOf76go4OvVg=
 github.com/xdg-go/pbkdf2 v1.0.0 h1:Su7DPu48wXMwC3bs7MCNG+z4FhcyEuz5dlvchbq0B0c=
 github.com/xdg-go/pbkdf2 v1.0.0/go.mod h1:jrpuAogTd400dnrH08LKmI/xc1MbPOebTwRqcT5RDeI=
 github.com/xdg-go/scram v1.1.2 h1:FHX5I5B4i4hKRVRBCFRxq1iQRej7WO3hhBuJf+UUySY=

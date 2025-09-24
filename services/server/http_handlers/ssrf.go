@@ -14,13 +14,15 @@ import (
 )
 
 func RegSSRFHandlers(r *mux.Router, ssrfRepo *ssrfrepo.Repository, streams map[string]rasp_rpc.RASPCentral_SyncRulesServer) {
-	baseURI := "/ssrf_agents"
+	baseURI := "/ssrf-agents"
+	updateURL := baseURI + "/update"
+	getAllURL := baseURI + "/get-all"
 
-	r.HandleFunc(baseURI+"/get_all", GetAllSSRFAgents(ssrfRepo)).Methods("GET")
-	logHandlers("registered route /ssrf-agents/get_all with method GET")
+	r.HandleFunc(getAllURL, GetAllSSRFAgents(ssrfRepo)).Methods("GET")
+	logHandlers(getAllURL, "get")
 
-	r.HandleFunc(baseURI+"/update", UpdateSSRFRules(streams, ssrfRepo)).Methods("POST")
-	logHandlers("registered route /ssrf-agents/update with method POST")
+	r.HandleFunc(updateURL, UpdateSSRFRules(streams, ssrfRepo)).Methods("POST")
+	logHandlers(updateURL, "post")
 }
 
 func GetAllSSRFAgents(ssrfRepo *ssrfrepo.Repository) func(w http.ResponseWriter, r *http.Request) {
