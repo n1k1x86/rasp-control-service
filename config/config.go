@@ -8,8 +8,9 @@ import (
 )
 
 type Config struct {
-	Mongo Mongo `yaml:"mongo"`
-	App   App   `yaml:"app"`
+	Mongo      Mongo `yaml:"mongo"`
+	HTTPServer `yaml:"http_server"`
+	App        App `yaml:"app"`
 }
 
 type Mongo struct {
@@ -18,6 +19,10 @@ type Mongo struct {
 	MinConns uint64        `yaml:"min_conns"`
 	IdleTime time.Duration `yaml:"idle_time"`
 	DBName   string        `yaml:"db_name"`
+}
+
+type HTTPServer struct {
+	Addr string `yaml:"addr"`
 }
 
 type App struct {
