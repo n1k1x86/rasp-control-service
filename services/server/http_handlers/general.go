@@ -13,9 +13,13 @@ import (
 func RegGeneralHandlers(r *mux.Router, generalRepo *generalRepo.Repository) {
 	baseURI := "/general"
 	regServiceURL := baseURI + "/reg-service"
+	healthURL := baseURI + "/health"
 
 	r.HandleFunc(regServiceURL, RegService(generalRepo)).Methods("POST")
 	logHandlers(regServiceURL, "post")
+
+	r.HandleFunc(healthURL, Health()).Methods("GET")
+	logHandlers(healthURL, "get")
 }
 
 func RegService(generalRepo *generalRepo.Repository) func(w http.ResponseWriter, r *http.Request) {
@@ -52,5 +56,18 @@ func RegService(generalRepo *generalRepo.Repository) func(w http.ResponseWriter,
 
 		w.Write(body)
 		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func Health() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		resp := HealthResponse{Status: "OK"}
+		data, err := json.Marshal(&resp)
+		if err != nil {
+			HandleError(w, err, http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write(data)
 	}
 }

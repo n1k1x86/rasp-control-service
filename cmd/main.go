@@ -29,16 +29,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	go func() {
-		<-ctx.Done()
-		err = client.Disconnect(ctx)
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Println("mongo disconnected")
-	}()
 
-	lis, err := net.Listen("tcp", ":50051")
+	lis, err := net.Listen("tcp", "0.0.0.0:50051")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -57,9 +49,13 @@ func main() {
 		}
 	}()
 
+	httpServer := rasp_server.NewHTTPServer(ctx, cfg.Addr, server.StreamMap, ssrfRepo, generalRepo)
+
 	go func() {
-		httpServer := rasp_server.NewHTTPServer(ctx, server.StreamMap, ssrfRepo, generalRepo)
-		httpServer.Start()
+		err := httpServer.Start()
+		if err != nil {
+			log.Println(err)
+		}
 	}()
 
 	sig := make(chan os.Signal, 1)
@@ -70,8 +66,17 @@ func main() {
 
 	gracefulCtx, gracefulCancel := context.WithTimeout(context.Background(), cfg.App.GracefulTimeout)
 	defer gracefulCancel()
-	<-gracefulCtx.Done()
+
+	httpServer.Close(gracefulCtx)
 
 	grpcServer.GracefulStop()
+	log.Println("grpc was stopped")
+
+	err = client.Disconnect(gracefulCtx)
+	if err != nil {
+		log.Println(err)
+	}
+	log.Println("mongo disconnected")
+
 	log.Println("app was gracefully shutted down")
 }

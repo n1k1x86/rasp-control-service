@@ -2,7 +2,6 @@ package httphandlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -15,31 +14,32 @@ import (
 
 func RegSSRFHandlers(r *mux.Router, ssrfRepo *ssrfrepo.Repository, streams map[string]rasp_rpc.RASPCentral_SyncRulesServer) {
 	baseURI := "/ssrf-agents"
-	updateURL := baseURI + "/update"
+
+	bindRulesURL := baseURI + "/bind-rules"
 	getAllURL := baseURI + "/get-all"
+	addRulesURL := baseURI + "/add-rules"
 
 	r.HandleFunc(getAllURL, GetAllSSRFAgents(ssrfRepo)).Methods("GET")
 	logHandlers(getAllURL, "get")
 
-	r.HandleFunc(updateURL, UpdateSSRFRules(streams, ssrfRepo)).Methods("POST")
-	logHandlers(updateURL, "post")
+	r.HandleFunc(bindRulesURL, BindSSRFRules(streams, ssrfRepo)).Methods("POST")
+	logHandlers(bindRulesURL, "post")
+
+	r.HandleFunc(addRulesURL, AddNewSSRFRules(ssrfRepo)).Methods("POST")
+	logHandlers(addRulesURL, "post")
 }
 
 func GetAllSSRFAgents(ssrfRepo *ssrfrepo.Repository) func(w http.ResponseWriter, r *http.Request) {
 	agents, err := ssrfRepo.GetAllAgents()
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
-			log.Printf("ERROR: %s", err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(fmt.Sprintf(`{"error": %s}`, err.Error())))
+			HandleError(w, err, http.StatusInternalServerError)
 			return
 		}
 
 		data, err := json.Marshal(&agents)
 		if err != nil {
-			log.Printf("ERROR: %s", err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(fmt.Sprintf(`{"error": %s}`, err.Error())))
+			HandleError(w, err, http.StatusInternalServerError)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
@@ -47,40 +47,68 @@ func GetAllSSRFAgents(ssrfRepo *ssrfrepo.Repository) func(w http.ResponseWriter,
 	}
 }
 
-func UpdateSSRFRules(streams map[string]rasp_rpc.RASPCentral_SyncRulesServer, ssrfRepo *ssrfrepo.Repository) func(w http.ResponseWriter, r *http.Request) {
+func BindSSRFRules(streams map[string]rasp_rpc.RASPCentral_SyncRulesServer, ssrfRepo *ssrfrepo.Repository) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		data, err := io.ReadAll(r.Body)
 		if err != nil {
-			log.Printf("ERROR: %s", err.Error())
-			w.WriteHeader(http.StatusBadRequest)
+			HandleError(w, err, http.StatusBadRequest)
 			return
 		}
-		var req UpdateRulesBody
+		var req BindRulesRequest
 		err = json.Unmarshal(data, &req)
 		if err != nil {
-			log.Printf("ERROR: %s", err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
+			HandleError(w, err, http.StatusInternalServerError)
 			return
 		}
 
-		rules := ssrfRepo.NewRules(req.HostsRules, req.IPRules, req.RegexpRules)
-		err = ssrfRepo.UpdateSSRFRules(req.AgentID, rules)
+		rules, err := ssrfRepo.BindRules(req.AgentID, req.RulesID)
 		if err != nil {
-			log.Printf("ERROR: %s", err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
+			HandleError(w, err, http.StatusInternalServerError)
 			return
 		}
 		log.Printf("agent %s, rules were successfully updated", req.AgentID)
 
 		stream := streams[req.AgentID]
 
-		err = stream.Send(BuildRules(req.HostsRules, req.IPRules, req.RegexpRules))
+		err = stream.Send(BuildRules(rules.HostRules.Hosts, rules.IPRules.IPs, rules.RegexpRules.Regexps))
 		if err != nil {
-			log.Printf("ERROR: %s", err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
+			HandleError(w, err, http.StatusInternalServerError)
 			return
 		}
 
 		w.WriteHeader(200)
+	}
+}
+
+func AddNewSSRFRules(ssrfRepo *ssrfrepo.Repository) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		data, err := io.ReadAll(r.Body)
+		if err != nil {
+			HandleError(w, err, http.StatusBadRequest)
+			return
+		}
+
+		var req AddNewSSRFRulesRequest
+		err = json.Unmarshal(data, &req)
+		if err != nil {
+			HandleError(w, err, http.StatusInternalServerError)
+			return
+		}
+
+		rules := ssrfRepo.NewRules(req.IPRules, req.HostsRules, req.RegexpRules, req.Description)
+		rulesID, err := ssrfRepo.AddRules(rules)
+		if err != nil {
+			HandleError(w, err, http.StatusInternalServerError)
+			return
+		}
+
+		resp := AddNewSSRFRulesResponse{RulesID: rulesID, Detail: "new rules were added"}
+		data, err = json.Marshal(&resp)
+		if err != nil {
+			HandleError(w, err, http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusCreated)
+		w.Write(data)
 	}
 }

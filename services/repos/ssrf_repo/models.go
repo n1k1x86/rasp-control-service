@@ -7,21 +7,23 @@ import (
 )
 
 type SSRFAgent struct {
-	ID        primitive.ObjectID `json:"id" bson:"_id"`
-	AgentName string             `json:"agent_name" bson:"agent_name"`
-	ServiceID primitive.ObjectID `json:"service_id" bson:"service_id"`
-	IsActive  bool               `json:"is_active" bson:"is_active"`
-	Rules     Rules              `json:"rules" bson:"rules"`
-	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
-	UpdatedAt time.Time          `json:"updated_at" bson:"updated_at"`
+	ID        primitive.ObjectID `bson:"_id"`
+	AgentName string             `bson:"agent_name"`
+	ServiceID primitive.ObjectID `bson:"service_id"`
+	IsActive  bool               `bson:"is_active"`
+	Rules     primitive.ObjectID `bson:"rules_id"`
+	CreatedAt time.Time          `bson:"created_at"`
+	UpdatedAt time.Time          `bson:"updated_at"`
 }
 
 type Rules struct {
-	HostRules   HostRules   `json:"host_rules" bson:"host_rules"`
-	IPRules     IPRules     `json:"ip_rules" bson:"ip_rules"`
-	RegexpRules RegexpRules `json:"regexp_rules" bson:"regexp_rules"`
-	CreatedAt   time.Time   `json:"created_at" bson:"created_at"`
-	UpdatedAt   time.Time   `json:"updated_at" bson:"updated_at"`
+	ID          primitive.ObjectID `bson:"_id"`
+	Description string             `bson:"description"`
+	HostRules   HostRules          `bson:"host_rules"`
+	IPRules     IPRules            `bson:"ip_rules"`
+	RegexpRules RegexpRules        `bson:"regexp_rules"`
+	CreatedAt   time.Time          `bson:"created_at"`
+	UpdatedAt   time.Time          `bson:"updated_at"`
 }
 
 type HostRules struct {
@@ -42,7 +44,7 @@ type RegexpRules struct {
 	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
 }
 
-func (r *Repository) NewRules(hosts, ips, regexps []string) *Rules {
+func (r *Repository) NewRules(hosts, ips, regexps []string, description string) *Rules {
 	hostRules := HostRules{
 		Hosts:     hosts,
 		CreatedAt: time.Now(),
@@ -62,6 +64,8 @@ func (r *Repository) NewRules(hosts, ips, regexps []string) *Rules {
 	}
 
 	return &Rules{
+		ID:          primitive.NewObjectID(),
+		Description: description,
 		HostRules:   hostRules,
 		IPRules:     ipRules,
 		RegexpRules: regRules,
@@ -71,7 +75,6 @@ func (r *Repository) NewRules(hosts, ips, regexps []string) *Rules {
 }
 
 func (r *Repository) NewAgent(agentName, serviceID string) (*SSRFAgent, error) {
-	rules := &Rules{}
 	serviceIDObjectID, err := primitive.ObjectIDFromHex(serviceID)
 	if err != nil {
 		return nil, err
@@ -81,7 +84,7 @@ func (r *Repository) NewAgent(agentName, serviceID string) (*SSRFAgent, error) {
 		AgentName: agentName,
 		ServiceID: serviceIDObjectID,
 		IsActive:  true,
-		Rules:     *rules,
+		Rules:     primitive.NilObjectID,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}, nil

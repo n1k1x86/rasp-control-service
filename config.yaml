@@ -5,5 +5,8 @@ mongo:
   idle_time: 30m
   db_name: rasp-central
 
+http_server:
+  addr: 0.0.0.0:8000
+
 app:
-  graceful_timeout: 10s
+  graceful_timeout: 5s
