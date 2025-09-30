@@ -70,7 +70,7 @@ func BindSSRFRules(streams map[string]rasp_rpc.RASPCentral_SyncRulesServer, ssrf
 
 		stream := streams[req.AgentID]
 
-		err = stream.Send(BuildRules(rules.HostRules.Hosts, rules.IPRules.IPs, rules.RegexpRules.Regexps))
+		err = stream.Send(BuildSSRFRules(rules.HostRules.Hosts, rules.IPRules.IPs, rules.RegexpRules.Regexps))
 		if err != nil {
 			HandleError(w, err, http.StatusInternalServerError)
 			return

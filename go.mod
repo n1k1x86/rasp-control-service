@@ -5,7 +5,7 @@ go 1.23.0
 require (
 	github.com/gorilla/mux v1.8.1
 	github.com/n1k1x86/rasp-agents v0.0.10
-	github.com/n1k1x86/rasp-grpc-contract v0.1.8
+	github.com/n1k1x86/rasp-grpc-contract v0.1.9
 	go.mongodb.org/mongo-driver v1.17.4
 	google.golang.org/grpc v1.75.1
 	gopkg.in/yaml.v3 v3.0.1

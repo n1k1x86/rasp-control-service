@@ -33,9 +33,9 @@ func HandleError(w http.ResponseWriter, err error, respStatus int) {
 	w.Write(body)
 }
 
-func BuildRules(hosts, ips, regexps []string) *rasp_rpc.NewRules {
-	payload := &rasp_rpc.NewRules_Rules{
-		Rules: &rasp_rpc.UpdatedSSRFRules{
+func BuildSSRFRules(hosts, ips, regexps []string) *rasp_rpc.NewRules {
+	payload := &rasp_rpc.NewRules_SSRFRules{
+		SSRFRules: &rasp_rpc.UpdatedSSRFRules{
 			HostRules:   hosts,
 			IPRules:     ips,
 			RegexpRules: regexps,
